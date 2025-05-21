@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Split WOVN.io allowed domain list per token into separate rows.
+Split WOVN.io allowed domain list per token into separate rows,
+and prepend "https://" to each domain if not already present.
 
 Filenames and output headers are specified within the script.
 Adjust INPUT_CSV and OUTPUT_CSV constants as needed.
@@ -24,6 +25,8 @@ ORIG_DOMAIN = 'WOVN.io: 許可ドメインリスト'
 
 # 区切りパターン（改行, カンマ, セミコロン）
 pattern = re.compile(r'[\n,;]+')
+# URLプレフィックス確認パターン
+url_pattern = re.compile(r'^https?://', re.IGNORECASE)
 
 def split_domains():
     with open(INPUT_CSV, newline='', encoding='utf-8-sig') as infile:
@@ -53,8 +56,12 @@ def split_domains():
                 domains = pattern.split(domain_list)
                 for d in domains:
                     d = d.strip()
-                    if d:
-                        writer.writerow({TOKEN_COL: token, DOMAIN_COL: d})
+                    if not d:
+                        continue
+                    # https://がなければ付与
+                    if not url_pattern.match(d):
+                        d = 'https://' + d
+                    writer.writerow({TOKEN_COL: token, DOMAIN_COL: d})
 
 if __name__ == '__main__':
     split_domains()
