@@ -13,7 +13,7 @@ import re
 
 # --- ユーザが指定するファイル名 ---
 INPUT_CSV = 'orgin_file_token_domain.csv'
-OUTPUT_CSV = 'splited_token_domain.csv'
+OUTPUT_CSV = 'output/splited_token_domain.csv'
 
 # --- 出力するカラム名 ---
 TOKEN_COL = 'token'

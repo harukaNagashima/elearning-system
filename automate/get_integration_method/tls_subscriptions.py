@@ -57,7 +57,7 @@ def main():
         "tls_domain_ids"
     ]
     df = df.reindex(columns=cols)
-    df.to_csv("tls_subscriptions.csv", index=False, encoding="utf-8")
+    df.to_csv("output/tls_subscriptions.csv", index=False, encoding="utf-8")
 
     print("tls_subscriptions.csv に tls_domain_ids 列を含めて出力しました")
 

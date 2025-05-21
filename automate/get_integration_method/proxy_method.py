@@ -58,6 +58,6 @@ df = df[[
     "url_pattern_name",
     "auth_header"
 ]]
-df.to_csv("service_dicts_summary.csv", index=False, encoding="utf-8")
+df.to_csv("output/service_dicts_summary.csv", index=False, encoding="utf-8")
 
 print("service_dicts_summary.csv に出力しました")
