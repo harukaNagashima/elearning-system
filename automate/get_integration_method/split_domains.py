@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
 Split WOVN.io allowed domain list per token into separate rows,
-and prepend "https://" to each domain if not already present.
+prepend "https://" to each domain if not already present,
+and output into multiple CSV files with up to CHUNK_SIZE rows each.
 
 Filenames and output headers are specified within the script.
-Adjust INPUT_CSV and OUTPUT_CSV constants as needed.
-If the input CSV uses Japanese headers トークンキー / WOVN.io: 許可ドメインリスト,
-the script will detect and map them automatically.
+Adjust INPUT_CSV, OUTPUT_PREFIX, and CHUNK_SIZE constants as needed.
 """
 import csv
 import re
 
-# --- ユーザが指定するファイル名 ---
-INPUT_CSV = 'orgin_file_token_domain.csv'
-OUTPUT_CSV = 'output/splited_token_domain.csv'
+# --- ユーザが指定するファイル名・設定 ---
+INPUT_CSV = 'orgin_file_token_domain.csv'        # 入力CSVファイル
+OUTPUT_PREFIX = 'output/splited_token_domain/file'              # 出力ファイル接頭辞（output_1.csv, output_2.csv ...）
+CHUNK_SIZE = 100                      # 1ファイルあたりの行数上限
 
 # --- 出力するカラム名 ---
 TOKEN_COL = 'token'
@@ -31,8 +31,8 @@ url_pattern = re.compile(r'^https?://', re.IGNORECASE)
 def split_domains():
     with open(INPUT_CSV, newline='', encoding='utf-8-sig') as infile:
         reader = csv.DictReader(infile)
-        # ヘッダーを検出して実際のカラム名を決定
         headers = reader.fieldnames or []
+        # カラム名判定
         if TOKEN_COL in headers:
             token_key = TOKEN_COL
         elif ORIG_TOKEN in headers:
@@ -46,22 +46,42 @@ def split_domains():
         else:
             raise KeyError(f"Domain column not found: expected '{DOMAIN_COL}' or '{ORIG_DOMAIN}'")
 
-        # 出力ファイル準備
-        with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as outfile:
-            writer = csv.DictWriter(outfile, fieldnames=[TOKEN_COL, DOMAIN_COL])
-            writer.writeheader()
-            for row in reader:
-                token = row.get(token_key, '').strip()
-                domain_list = row.get(domain_key, '')
-                domains = pattern.split(domain_list)
-                for d in domains:
-                    d = d.strip()
-                    if not d:
-                        continue
-                    # https://がなければ付与
-                    if not url_pattern.match(d):
-                        d = 'https://' + d
-                    writer.writerow({TOKEN_COL: token, DOMAIN_COL: d})
+        file_index = 1
+        row_count = 0
+        output_file = None
+        writer = None
+
+        def open_new_file(idx):
+            filename = f"{OUTPUT_PREFIX}_{idx}.csv"
+            f = open(filename, 'w', newline='', encoding='utf-8')
+            w = csv.DictWriter(f, fieldnames=[TOKEN_COL, DOMAIN_COL])
+            w.writeheader()
+            return f, w
+
+        for row in reader:
+            token = row.get(token_key, '').strip()
+            domain_list = row.get(domain_key, '')
+            domains = pattern.split(domain_list)
+            for d in domains:
+                d = d.strip()
+                if not d:
+                    continue
+                # https:// がなければ付与
+                if not url_pattern.match(d):
+                    d = 'https://' + d
+                # 新しいチャンクファイルを開く必要があるか？
+                if row_count % CHUNK_SIZE == 0:
+                    if output_file:
+                        output_file.close()
+                    output_file, writer = open_new_file(file_index)
+                    file_index += 1
+                    row_count = 0
+                writer.writerow({TOKEN_COL: token, DOMAIN_COL: d})
+                row_count += 1
+
+        # 最後のファイルを閉じる
+        if output_file:
+            output_file.close()
 
 if __name__ == '__main__':
     split_domains()

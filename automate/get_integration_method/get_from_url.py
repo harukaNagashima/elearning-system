@@ -67,7 +67,7 @@ def detect_wovn_from_url(url):
 
 # CSV読み込みと並列処理
 def main():
-    df = pd.read_csv('output/splited_token_domain.csv')
+    df = pd.read_csv('output/splited_token_domain/file_1.csv')
     columns = [c.lower() for c in df.columns]
     url_col = df.columns[columns.index('url')]
     urls = df[url_col].dropna().tolist()
