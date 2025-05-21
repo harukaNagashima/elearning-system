@@ -7,7 +7,7 @@ import os
 import time
 
 # ▼ 入力ファイル名（任意のCSV）
-input_path = 'csvfilename'+'.csv'
+input_path = 'splited_token_domain'+'.csv'
 df = pd.read_csv(input_path)
 
 # ▼ URL列を自動認識（大文字・小文字対応）
