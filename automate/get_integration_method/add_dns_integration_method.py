@@ -11,7 +11,6 @@ SERVICE_CSV = 'output/service_dicts_summary.csv'
 TLS_CSV = 'output/tls_subscriptions.csv'
 OUTPUT_CSV = 'output/service_dicts_summary.csv'
 
-
 def main():
     # CSV 読み込み
     df_service = pd.read_csv(SERVICE_CSV)
@@ -27,29 +26,28 @@ def main():
 
     # 部分一致チェック関数: host を文字列化し、NaN はスキップ
     def is_dns_pattern(host) -> bool:
-        # NaN や空文字を除外
         if pd.isna(host):
             return False
         host_str = str(host).strip()
         if not host_str:
             return False
-        # 部分一致チェック
         return any(host_str in tls for tls in tls_domains)
 
     # integration_method 列を追加／更新
+    # マッチしたら DNSパターン、しなければ Proxy方式
     df_service['integration_method'] = df_service['default_host'].apply(
-        lambda h: 'DNSパターン' if is_dns_pattern(h) else ''
+        lambda h: 'Proxy方式 DNSパターン' if is_dns_pattern(h) else 'Proxy方式'
     )
 
     # 実行結果のサマリ
     total = len(df_service)
-    matched = (df_service['integration_method'] == 'DNSパターン').sum()
-    print(f"Processed {total} entries, matched DNS パターン: {matched}")
+    dns_count = (df_service['integration_method'] == 'DNSパターン').sum()
+    proxy_count = (df_service['integration_method'] == 'Proxy方式').sum()
+    print(f"Processed {total} entries: DNSパターン={dns_count}, Proxy方式={proxy_count}")
 
     # 結果を保存
     df_service.to_csv(OUTPUT_CSV, index=False)
     print(f"Saved: {OUTPUT_CSV}")
-
 
 if __name__ == '__main__':
     main()
