@@ -48,7 +48,7 @@ def detect_wovn(token, url):
         info = script.get('data-wovnio-info','') or ''
         m = None
         if 'backendVersion=WOVN.proxy_' in raw:
-            install_type = 'プロキシ方式'
+            install_type = 'Proxy方式'
             m = re.search(r'backendVersion=WOVN\.proxy_([0-9.]+)', raw)
         elif 'backendVersion=WOVN.php_' in raw:
             install_type = 'PHPライブラリ方式'

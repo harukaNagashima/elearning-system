@@ -9,7 +9,7 @@ import pandas as pd
 # ファイルパスをコード内で指定
 SERVICE_CSV = 'output/service_dicts_summary.csv'
 TLS_CSV = 'output/tls_subscriptions.csv'
-OUTPUT_CSV = 'output/service_with_integration_method.csv'
+OUTPUT_CSV = 'output/service_dicts_summary.csv'
 
 
 def main():
