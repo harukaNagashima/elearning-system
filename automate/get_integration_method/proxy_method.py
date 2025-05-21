@@ -50,10 +50,10 @@ with ApiClient(conf) as client:
 df = pd.DataFrame(rows)
 # 出力したい列順に並べ替え
 df = df[[
+    "token",
     "service_id",
     "version",
     "dictionary_id",
-    "token",
     "default_host",
     "url_pattern_name",
     "auth_header"

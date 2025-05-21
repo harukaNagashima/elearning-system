@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -5,17 +6,18 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# スキップ対象ドメインのリスト
-SKIP_DOMAINS = [
-    'sharepoint.com',
-    # 追加でスキップしたいドメインがあればここに追記
-]
+# 入出力ディレクトリ設定
+INPUT_DIR = 'output/splited_token_domain'
+OUTPUT_DIR = 'output/wovn_install_methods'
+SKIP_DOMAINS = ['sharepoint.com']
 
-# URLがスキップ対象か判定する関数
+# ドメインスキップ判定
+
 def is_skip_domain(url):
     return any(domain in url for domain in SKIP_DOMAINS)
 
 # リトライ付きリクエスト
+
 def get_with_retry(url, retries=3, delay=1):
     for i in range(retries):
         try:
@@ -28,58 +30,71 @@ def get_with_retry(url, retries=3, delay=1):
             else:
                 return None
 
-# 判定ロジック
-def detect_wovn_from_url(url):
-    # スキップ判定
+# WOVN導入方式判定
+
+def detect_wovn(token, url):
     if is_skip_domain(url):
-        return {'url': url, '導入方式': 'スキップ:認証が必要', 'バージョン': ''}
+        return {'token': token, 'url': url, '導入方式': 'スキップ:認証が必要', 'バージョン': ''}
     r = get_with_retry(url)
     if not r:
-        return {'url': url, '導入方式': 'リクエスト失敗', 'バージョン': ''}
-    soup = BeautifulSoup(r.text, 'html.parser')  # 必要なら features=\"xml\" に変更
-    script = soup.find('script', src=re.compile(r'j\\.wovn\\.io'))
+        return {'token': token, 'url': url, '導入方式': 'リクエスト失敗', 'バージョン': ''}
+    soup = BeautifulSoup(r.text, 'html.parser')
+    script = soup.find('script', src=re.compile(r'j\.wovn\.io'))
     install_type = 'scriptが設置されていません'
     version = ''
+
     if script:
-        raw = script.get('data-wovnio','') or ''
+        raw  = script.get('data-wovnio','') or ''
         info = script.get('data-wovnio-info','') or ''
         m = None
         if 'backendVersion=WOVN.proxy_' in raw:
-            install_type = 'プロキシ型'
-            m = re.search(r'backendVersion=WOVN\\.proxy_([0-9.]+)', raw)
+            install_type = 'プロキシ方式'
+            m = re.search(r'backendVersion=WOVN\.proxy_([0-9.]+)', raw)
         elif 'backendVersion=WOVN.php_' in raw:
-            install_type = 'PHPライブラリ型'
-            m = re.search(r'backendVersion=WOVN\\.php_([0-9.]+)', raw)
+            install_type = 'PHPライブラリ方式'
+            m = re.search(r'backendVersion=WOVN\.php_([0-9.]+)', raw)
         elif 'version=Wovn.cs_' in raw:
-            install_type = 'C#ライブラリ型'
-            m = re.search(r'version=Wovn\\.cs_([0-9.]+)', raw)
+            install_type = 'C#ライブラリ方式'
+            m = re.search(r'version=Wovn\.cs_([0-9.]+)', raw)
         elif 'version=' in raw and 'backend=true' in raw:
-            install_type = 'Javaライブラリ型'
+            install_type = 'Javaライブラリ方式'
             m = re.search(r'version=([0-9.]+)', raw)
         elif 'version=WOVN.wp_' in info:
-            install_type = 'WordPressプラグイン型'
-            m = re.search(r'version=WOVN\\.wp_([0-9.]+)', info)
+            install_type = 'WordPressプラグイン方式'
+            m = re.search(r'version=WOVN\.wp_([0-9.]+)', info)
         elif 'key=' in raw and 'backend' not in raw:
-            install_type = 'JavaScriptタグ埋め込み型'
+            install_type = 'Script方式'
         if m:
             version = m.group(1)
-    return {'url': url, '導入方式': install_type, 'バージョン': version}
 
-# CSV読み込みと並列処理
-def main():
-    df = pd.read_csv('output/splited_token_domain/file_1.csv')
-    columns = [c.lower() for c in df.columns]
-    url_col = df.columns[columns.index('url')]
-    urls = df[url_col].dropna().tolist()
+    return {'token': token, 'url': url, '導入方式': install_type, 'バージョン': version}
+
+# ファイル単位で処理
+
+def process_file(input_path, output_path):
+    df = pd.read_csv(input_path)
+    cols = [c.lower() for c in df.columns]
+    token_col = df.columns[cols.index('token')]
+    url_col = df.columns[cols.index('url')]
+    entries = df[[token_col, url_col]].dropna().rename(columns={token_col:'token', url_col:'url'})
 
     results = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(detect_wovn_from_url, u) for u in urls]
-        for f in futures:
+    with ThreadPoolExecutor(max_workers=10) as exe:
+        futures = [exe.submit(detect_wovn, row['token'], row['url']) for _, row in entries.iterrows()]
+        for f in as_completed(futures):
             results.append(f.result())
 
-    out_df = pd.DataFrame(results)
-    out_df.to_csv('wovn_install_methods.csv', index=False)
+    out_df = pd.DataFrame(results, columns=['token','url','導入方式','バージョン'])
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    out_df.to_csv(output_path, index=False)
+    print(f"完了：{output_path}")
+
+# エントリポイント
 
 if __name__ == '__main__':
-    main()
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    for filename in os.listdir(INPUT_DIR):
+        if filename.endswith('.csv'):
+            input_path = os.path.join(INPUT_DIR, filename)
+            output_path = os.path.join(OUTPUT_DIR, filename)
+            process_file(input_path, output_path)
