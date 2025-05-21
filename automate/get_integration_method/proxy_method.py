@@ -38,6 +38,7 @@ with ApiClient(conf) as client:
                 "default_host":     None,
                 "url_pattern_name": None,
                 "auth_header":      None,
+                "integration_method": "",
             }
             # アイテムを取得してマッピング
             for it in item_api.list_dictionary_items(svc_id, dict_id):
@@ -56,7 +57,8 @@ df = df[[
     "dictionary_id",
     "default_host",
     "url_pattern_name",
-    "auth_header"
+    "auth_header",
+    "integration_method"
 ]]
 df.to_csv("output/service_dicts_summary.csv", index=False, encoding="utf-8")
 
