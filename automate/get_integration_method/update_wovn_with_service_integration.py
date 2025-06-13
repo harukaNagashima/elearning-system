@@ -7,9 +7,9 @@ service_dicts_summary.csv の "integration_method" で更新するスクリプ�
 import pandas as pd
 
 # 入出力ファイル設定
-WOVN_CSV = 'output/wovn_install_methods_merged.csv'
-SERVICE_CSV = 'output/service_dicts_summary.csv'
-OUTPUT_CSV = 'wovn_install_methods_updated.csv'
+WOVN_CSV = '/home/ec2-user/get_integration_method/output/wovn_install_methods_merged.csv'
+SERVICE_CSV = '/home/ec2-user/get_integration_method/output/service_dicts_summary.csv'
+OUTPUT_CSV = '/home/ec2-user/get_integration_method/wovn_install_methods_updated.csv'
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
 
     # service_dicts_summary に integration_method 列があるか確認
     if 'integration_method' not in df_service.columns:
-        raise KeyError(f"{SERVICE_CSV} に 'integration_method' 列が見つかりません。先にDNS/Proxy方式スクリプトを実行してください。")
+        raise KeyError(f"{SERVICE_CSV} に 'integration_method' 列が見つかりません。先にDNS/Proxy方式>スクリプトを実行してください。")
 
     # token および integration_method のみ抽出
     df_svc = df_service[['token', 'integration_method']].drop_duplicates(subset=['token'])
