@@ -10,9 +10,31 @@ brew install rclone
 ### Windows
 [公式サイト](https://rclone.org/downloads/)からダウンロードしてインストール
 
-### Linux
+### Linux (Ubuntu/Debian)
 ```bash
 curl https://rclone.org/install.sh | sudo bash
+```
+
+### Amazon Linux / CentOS / RHEL
+```bash
+# Amazon Linux 2023 / Amazon Linux 2
+sudo yum install -y curl unzip
+
+# rcloneをダウンロード＆インストール
+curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
+unzip rclone-current-linux-amd64.zip
+cd rclone-*-linux-amd64
+sudo cp rclone /usr/bin/
+sudo chown root:root /usr/bin/rclone
+sudo chmod 755 /usr/bin/rclone
+
+# manページをインストール（オプション）
+sudo mkdir -p /usr/local/share/man/man1
+sudo cp rclone.1 /usr/local/share/man/man1/
+sudo mandb
+
+# バージョン確認
+rclone version
 ```
 
 ## 2. Google Driveの設定
