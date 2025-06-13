@@ -188,3 +188,7 @@ dmypy.json
 
 # Exclude other project directories
 ../automate/
+
+# Data files
+data/*.csv
+*.csv
