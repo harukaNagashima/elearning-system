@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from .health_check import health_check, health_check_detailed
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -9,6 +10,9 @@ urlpatterns = [
     path('api/questions/', include('questions.urls')),
     path('api/progress/', include('progress.urls')),
     path('api/admin/', include('questions.admin_urls')),
+    # Health check endpoints
+    path('api/health/', health_check, name='health_check'),
+    path('api/health/detailed/', health_check_detailed, name='health_check_detailed'),
 ]
 
 if settings.DEBUG:
