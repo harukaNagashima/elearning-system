@@ -6,8 +6,6 @@ set -e
 # Configuration
 PROJECT_NAME="elearning-system"
 AWS_REGION="ap-northeast-1"
-ECR_REPOSITORY_BACKEND="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}-backend"
-ECR_REPOSITORY_FRONTEND="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}-frontend"
 ECS_CLUSTER="${PROJECT_NAME}-cluster"
 ECS_SERVICE="${PROJECT_NAME}-service"
 
@@ -38,6 +36,10 @@ check_aws_cli() {
     fi
     AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
     print_status "AWS Account ID: ${AWS_ACCOUNT_ID}"
+    
+    # Set ECR repository URLs after getting account ID
+    ECR_REPOSITORY_BACKEND="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}-backend"
+    ECR_REPOSITORY_FRONTEND="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}-frontend"
 }
 
 # Create ECR repositories
@@ -148,6 +150,25 @@ run_migrations() {
     print_warning "Run: python manage.py migrate"
 }
 
+# Check required tools
+check_prerequisites() {
+    print_status "Checking prerequisites..."
+    
+    # Check Docker
+    if ! command -v docker &> /dev/null; then
+        print_error "Docker is required but not installed"
+        exit 1
+    fi
+    
+    # Check if Docker is running
+    if ! docker info &> /dev/null; then
+        print_error "Docker is not running. Please start Docker Desktop"
+        exit 1
+    fi
+    
+    print_status "All prerequisites are met"
+}
+
 # Main deployment function
 main() {
     print_status "Starting deployment of ${PROJECT_NAME}..."
@@ -155,9 +176,11 @@ main() {
     # Check for required environment variables
     if [[ -z "${DB_PASSWORD}" ]]; then
         print_error "DB_PASSWORD environment variable is required"
+        print_error "Usage: DB_PASSWORD=your-password ./deploy/deploy.sh"
         exit 1
     fi
     
+    check_prerequisites
     check_aws_cli
     create_ecr_repositories
     build_and_push_images
