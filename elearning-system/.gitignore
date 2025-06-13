@@ -185,3 +185,6 @@ dmypy.json
 *.swp
 *.swo
 *~
+
+# Exclude other project directories
+../automate/
