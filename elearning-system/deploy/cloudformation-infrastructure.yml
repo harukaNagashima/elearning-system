@@ -227,7 +227,7 @@ Resources:
   RedisCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties:
-      CacheClusterId: !Sub ${ProjectName}-redis
+      ClusterName: !Sub ${ProjectName}-redis
       CacheNodeType: cache.t3.micro
       Engine: redis
       NumCacheNodes: 1
