@@ -35,6 +35,7 @@ services:
     container_name: elearning_backend
     environment:
       - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=elearning.settings.development
       - DB_HOST=db
       - DB_NAME=elearning_db
       - DB_USER=elearning_user
@@ -51,8 +52,13 @@ services:
     networks:
       - elearning_network
     command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "
+        echo 'Waiting for MySQL to be ready...' &&
+        while ! nc -z db 3306; do sleep 1; done &&
+        echo 'MySQL is ready!' &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
 
   # React Frontend
   frontend:
