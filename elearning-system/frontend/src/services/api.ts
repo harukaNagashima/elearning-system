@@ -1,7 +1,7 @@
 import { Genre, Question } from '../types';
 import { authService } from './auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/questions';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'https://elearning.wovn-cs-stg.com'}/api/questions`;
 
 export const api = {
   async getGenres(): Promise<Genre[]> {
@@ -85,7 +85,7 @@ export const api = {
         }
       }
 
-      const response = await fetch(`http://localhost:8000/api/progress/incorrect-questions/?${params}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://elearning.wovn-cs-stg.com'}/api/progress/incorrect-questions/?${params}`, {
         headers,
       });
       

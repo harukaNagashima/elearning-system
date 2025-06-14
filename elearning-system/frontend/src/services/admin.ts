@@ -1,7 +1,7 @@
 import { Genre, Question, User } from '../types';
 import { authService } from './auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/admin';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'https://elearning.wovn-cs-stg.com'}/api/admin`;
 
 class AdminService {
   private getHeaders(): HeadersInit {

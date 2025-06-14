@@ -1,6 +1,6 @@
 import { User, AuthTokens, LoginCredentials, RegisterCredentials } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000/api/auth';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'https://elearning.wovn-cs-stg.com'}/api/auth`;
 
 class AuthService {
   private static instance: AuthService;

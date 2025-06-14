@@ -8,7 +8,7 @@ import {
 } from '../types';
 import { authService } from './auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/progress';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'https://elearning.wovn-cs-stg.com'}/api/progress`;
 
 class ProgressService {
   private static instance: ProgressService;
