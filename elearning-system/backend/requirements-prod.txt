@@ -11,6 +11,9 @@ sentry-sdk==1.38.0
 # Database URL parsing
 dj-database-url==2.1.0
 
+# PostgreSQL adapter
+psycopg2-binary==2.9.7
+
 # Security and monitoring
 django-ratelimit==4.1.0
 
